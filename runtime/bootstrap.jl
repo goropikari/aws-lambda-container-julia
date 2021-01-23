@@ -40,11 +40,9 @@ end
 # Initialize lambda function by loading user module
 try
     @info "Loading user module"
-    global mod, func = Symbol.(split(HANDLER, "."))
+    global program_name, func = split(HANDLER, ".")
 
-    @eval using $(mod)
-
-    @info "Completed loading user module" mod func
+    @info "Completed loading user module" program_name func
 catch ex
     @error "Initializtion error" ex
     post_error("runtime/init/error", ex)
@@ -53,8 +51,11 @@ catch ex
 end
 
 @info "Resolve handler function"
-const my_module = Base.eval(Main, mod)
-const my_handler = Base.eval(my_module, func)
+# const my_module = Base.eval(Main, mod)
+# const my_handler = Base.eval(my_module, func)
+@info pwd()
+include("$(LAMBDA_TASK_ROOT)/$(program_name).jl")
+const my_handler = eval(Symbol(func))
 
 # An infinite loop to process events
 @info "Start processing requests"
