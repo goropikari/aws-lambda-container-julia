@@ -10,28 +10,27 @@ RUN yum install -y tar gzip \
  && rm julia-1.5.3-linux-x86_64.tar.gz \
  && ln -s julia-1.5.3 julia
 
-# Install application
-WORKDIR /var/task
-
 # Use a special depot path to store precompiled binaries
-ENV JULIA_DEPOT_PATH /var/task/.julia
+ENV JULIA_DEPOT_PATH $LAMBDA_TASK_ROOT/.julia
 
 # Copy application code
-COPY . .
+COPY *.toml $LAMBDA_TASK_ROOT/
+COPY src $LAMBDA_TASK_ROOT/src
 
 # Instantiate project and precompile packages
 RUN /usr/local/julia/bin/julia --project=. -e "using Pkg; Pkg.instantiate(); Pkg.API.precompile()"
 
 # Uncomment this line to allow more precompilation in lamdbda just in case.
 # That's because /var/task is a read-only path during runtime.
-ENV JULIA_DEPOT_PATH /tmp/.julia:/var/task/.julia
+ENV JULIA_DEPOT_PATH /tmp/.julia:/$LAMBDA_TASK_ROOT/.julia
 
 # Install bootstrap script
-WORKDIR /var/runtime
-COPY bootstrap .
+COPY runtime $LAMBDA_RUNTIME_DIR
 
 # Create an empty extensions directory
-WORKDIR /opt/extensions
+RUN mkdir /opt/extensions
+
+WORKDIR $LAMBDA_TASK_ROOT
 
 # Which module/function to call?
 CMD [ "JuliaLambdaExample.handle_event"]
