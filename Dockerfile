@@ -13,7 +13,6 @@ RUN yum install -y tar gzip \
 # Use a special depot path to store precompiled binaries
 ENV JULIA_DEPOT_PATH $LAMBDA_TASK_ROOT/.julia
 
-
 # Uncomment this line to allow more precompilation in lamdbda just in case.
 # That's because /var/task is a read-only path during runtime.
 ENV JULIA_DEPOT_PATH /tmp/.julia:/$LAMBDA_TASK_ROOT/.julia
@@ -24,16 +23,4 @@ COPY runtime $LAMBDA_RUNTIME_DIR
 # Create an empty extensions directory
 RUN mkdir /opt/extensions
 
-
-# Copy application code
-COPY *.toml $LAMBDA_TASK_ROOT/
-COPY src $LAMBDA_TASK_ROOT/src
-COPY main.jl $LAMBDA_TASK_ROOT/
-
-# Instantiate project and precompile packages
-RUN /usr/local/julia/bin/julia --project=. -e "using Pkg; Pkg.instantiate(); Pkg.API.precompile()"
-
 WORKDIR $LAMBDA_TASK_ROOT
-
-# filename.handler_name
-CMD ["main.handle_event"]
